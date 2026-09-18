@@ -64,7 +64,7 @@ demo.secret=${op::op://Development/Demo/credential}
 +
 [source,shell]
 ----
-mvn quarkus:dev -Donepassword.cli-path=op
+mvn quarkus:dev
 ----
 
 The extension resolves the secret at runtime.
