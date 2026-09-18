@@ -1,0 +1,37 @@
+= Authentication
+
+== Desktop (Interactive)
+
+For local development with a personal vault, enable CLI integration in the 1Password desktop app:
+
+**Settings → Developer → Integrate with 1Password CLI**
+
+The extension inherits the desktop app's authentication.
+Touch ID and system password prompts are handled by 1Password, not this extension.
+The extension never asks for, stores, or handles your master password.
+
+== Service Accounts (Unattended)
+
+For CI/CD and production deployments, set `OP_SERVICE_ACCOUNT_TOKEN` through your deployment's secret mechanism.
+The child `op` process inherits it — this extension never reads or logs the token.
+
+[source,shell]
+----
+export OP_SERVICE_ACCOUNT_TOKEN=<your-token>
+java -jar myapp-runner.jar
+----
+
+IMPORTANT: Do not put a service account token in source control or pass it on the command line.
+
+Service accounts cannot access built-in Personal/Private/Employee vaults.
+Use a dedicated vault with the required access for unattended deployments.
+
+No SDK or Connect server is required.
+
+== Security Notes
+
+* The CLI executable and its inherited environment are trusted local inputs.
+* Resolved values are ordinary Java strings in application memory.
+* The extension does **not** globally redact secrets from third-party logs, debuggers, or Dev UI.
+* Do not enable configuration value logging or expose a configuration-dump endpoint.
+* The cache is bounded but cannot promise secure erasure of Java strings.

@@ -1,0 +1,80 @@
+= Quarkus 1Password
+:extension-status: experimental
+
+Resolve runtime configuration secrets from https://1password.com[1Password] through the `op` CLI.
+
+No plaintext secrets in your properties files — just vault references:
+
+[source,properties]
+----
+quarkus.datasource.username=${op::op://Development/Postgres/username}
+quarkus.datasource.password=${op::op://Development/Postgres/password}
+my.api-key=${op::op://Personal/My API/credential}
+----
+
+Copy the secret reference from 1Password rather than guessing names.
+Section-qualified fields and item IDs are supported.
+
+== Prerequisites
+
+* Java 17+
+* https://developer.1password.com/docs/cli/get-started/[1Password CLI] (`op`) installed
+* For personal vaults: 1Password desktop app with **Settings → Developer → Integrate with 1Password CLI** enabled
+
+First use may display a desktop authorization prompt (Touch ID or password).
+The default timeout is 60 seconds.
+
+== Installation
+
+Add the runtime dependency to your project:
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>io.quarkiverse.onepassword</groupId>
+    <artifactId>quarkus-onepassword</artifactId>
+    <version>${project.version}</version>
+</dependency>
+----
+
+== Usage
+
+Use standard Quarkus configuration injection:
+
+[source,java]
+----
+@ConfigProperty(name = "my.api-key")
+String apiKey;
+----
+
+`@ConfigMapping` and runtime configuration consumed by other extensions work through the same mechanism.
+No CDI producer or custom converter needed.
+
+== Quick Example
+
+. Create a vault item: vault `Development`, item `Demo`, field `credential`
+. Configure it:
++
+[source,properties]
+----
+demo.secret=${op::op://Development/Demo/credential}
+----
++
+. Run:
++
+[source,shell]
+----
+mvn quarkus:dev -Donepassword.cli-path=op
+----
+
+The extension resolves the secret at runtime.
+Build and packaging never perform a lookup.
+
+== How It Works
+
+The extension registers a SmallRye Config https://smallrye.io/smallrye-config/Main/config/secret-keys/[`SecretKeysHandler`] that intercepts `${op::...}` expressions at runtime.
+Each reference triggers an `op read` subprocess call.
+Successful results are cached (LRU, up to 256 entries) for the lifetime of the config instance.
+
+Lookups are serialized when caching is enabled to avoid simultaneous desktop prompts.
+A new config instance (including a dev-mode restart) gets a fresh cache.

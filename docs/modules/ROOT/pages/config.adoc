@@ -1,0 +1,52 @@
+= Configuration Reference
+
+== Extension Properties
+
+[cols="2,2,1,3",options="header"]
+|===
+| Property | Environment Variable | Default | Description
+
+| `onepassword.cli-path`
+| `ONEPASSWORD_CLI_PATH`
+| `op`
+| Executable name or absolute path. Never a shell command.
+
+| `onepassword.account`
+| `ONEPASSWORD_ACCOUNT`
+| _unset_
+| Optional CLI account selector.
+
+| `onepassword.timeout`
+| `ONEPASSWORD_TIMEOUT`
+| `PT60S`
+| Positive ISO-8601 duration, maximum `PT10M`.
+
+| `onepassword.cache`
+| `ONEPASSWORD_CACHE`
+| `true`
+| Cache successful resolutions for this config instance.
+|===
+
+NOTE: The prefix intentionally avoids `quarkus.*`.
+These settings are read directly through the SmallRye handler factory context, without CDI bootstrap dependencies.
+Handler settings must not themselves depend on `op`.
+
+== Profile-scoped Example
+
+[source,properties]
+----
+%dev.quarkus.datasource.password=${op::op://Development/Postgres/password}
+%prod.quarkus.datasource.password=${op::op://Production/Postgres/password}
+----
+
+Higher-priority environment variables or system properties can override the whole property.
+If the reference is overridden, no lookup is performed.
+
+== Lifecycle
+
+* Registration uses `RunTimeConfigBuilderBuildItem` only — no build-time secret fetching.
+* A reference in a build-time property fails rather than fetching a secret during the build.
+* Each config instance owns a bounded LRU cache (256 entries). Failures are not cached.
+* Restart the application to pick up rotated credentials.
+* With `onepassword.cache=false`, each config lookup calls `op`. This does not make injected values dynamically refresh.
+* Query parameters (including OTP) are rejected. Only ordinary text fields are supported.

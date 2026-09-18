@@ -1,0 +1,10 @@
+name: "1Password"
+description: "Resolve runtime configuration secrets through the 1Password CLI."
+metadata:
+  keywords:
+    - "1password"
+    - "secrets"
+    - "configuration"
+  categories:
+    - "security"
+  status: "experimental"

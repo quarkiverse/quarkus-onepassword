@@ -1,0 +1,11 @@
+site:
+  title: Quarkus 1Password
+  start_page: quarkus-onepassword::index.adoc
+content:
+  sources:
+    - url: .
+      branches: HEAD
+      start_path: docs
+ui:
+  bundle:
+    url: https://quarkiverse.github.io/antora-ui-quarkiverse/main/ui-bundle.zip

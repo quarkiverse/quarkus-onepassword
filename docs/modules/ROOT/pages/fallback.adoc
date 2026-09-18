@@ -1,0 +1,69 @@
+= Defaults and Fallback
+
+Use standard SmallRye property expressions for fallback — no new syntax required:
+
+[source,properties]
+----
+vault.db-password=${op::op://Development/Postgres/password}
+quarkus.datasource.password=${vault.db-password:local-development-password}
+----
+
+An environment-first variant:
+
+[source,properties]
+----
+quarkus.datasource.password=${DB_PASSWORD:${vault.db-password:local-development-password}}
+----
+
+The resolver runs only if that expression branch is needed.
+
+== Behavior Summary
+
+[cols="2,3",options="header"]
+|===
+| Result | Behavior
+
+| Secret resolves
+| Used directly. No warning.
+
+| Lookup fails, expression default resolves
+| Default used. `WARN OPCFG001` logged with property names and reason.
+
+| Lookup fails, no usable default
+| `ERROR OPCFG002`. Config error thrown with property names and reason.
+
+| Malformed reference or caller interruption
+| `ERROR OPCFG003`. Fails directly even if a default exists.
+
+| Higher-priority override or unselected branch
+| No lookup, no warning.
+|===
+
+== Diagnostic Messages
+
+Startup errors preserve the diagnostic context:
+
+[source]
+----
+OPCFG002: Cannot resolve configuration property 'quarkus.datasource.password':
+1Password lookup for 'vault.db-password' failed and no usable default resolved it.
+Reason: 1Password lookup timed out; authorize the desktop prompt or increase onepassword.timeout
+----
+
+Messages contain property names and sanitized reasons — never resolved secrets, default values, raw CLI output, or vault reference paths.
+
+Logger category: `io.quarkiverse.onepassword.config`
+
+== How Fallback Works
+
+SmallRye's `SecretKeysHandler.decode()` throws on failure — there is no "return null" path.
+The extension uses a pair of `ConfigSourceInterceptor` factories to work around this:
+
+. A **lookup interceptor** catches the failure, stashes it, and returns `null` so SmallRye's expression layer can try defaults.
+. A **diagnostics interceptor** wraps the expression evaluation and reports what happened — whether the default resolved or the lookup ultimately failed.
+
+An explicit default permits fallback on CLI failures including a missing executable, timeout, or nonzero exit.
+Omit the default when a vault-backed credential is required.
+
+NOTE: Appending `:default` inside `${op::...}` does not define an expression default — it becomes part of the vault reference.
+Use the separate named-property pattern shown above.

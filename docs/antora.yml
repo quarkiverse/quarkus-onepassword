@@ -1,0 +1,5 @@
+name: quarkus-onepassword
+title: 1Password
+version: dev
+nav:
+  - modules/ROOT/nav.adoc
