@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <name>Quarkus 1Password</name>
   <properties>
-    <quarkus.version>3.27.0</quarkus.version>
+    <quarkus.version>3.39.4</quarkus.version>
   </properties>
   <scm>
     <connection>scm:git:git@github.com:quarkiverse/quarkus-onepassword.git</connection>
