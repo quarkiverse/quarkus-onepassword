@@ -23,7 +23,8 @@ public final class CliOnePasswordResolver implements OnePasswordResolver {
     private final Duration timeout;
 
     public CliOnePasswordResolver(String executable, String account, Duration timeout) {
-        if (executable == null || executable.isBlank()) throw new IllegalArgumentException("1Password executable is required");
+        if (executable == null || executable.isBlank())
+            throw new IllegalArgumentException("1Password executable is required");
         if (timeout == null || timeout.isNegative() || timeout.isZero() || timeout.compareTo(Duration.ofMinutes(10)) > 0)
             throw new IllegalArgumentException("1Password timeout must be positive and at most PT10M");
         this.executable = executable;
@@ -34,9 +35,13 @@ public final class CliOnePasswordResolver implements OnePasswordResolver {
     @Override
     public String resolve(String reference) {
         validateReference(reference);
-        if (Thread.currentThread().isInterrupted()) throw new OnePasswordException("1Password lookup interrupted", false);
+        if (Thread.currentThread().isInterrupted())
+            throw new OnePasswordException("1Password lookup interrupted", false);
         List<String> arguments = new ArrayList<>(List.of("read", "--no-newline"));
-        if (account != null && !account.isBlank()) { arguments.add("--account"); arguments.add(account); }
+        if (account != null && !account.isBlank()) {
+            arguments.add("--account");
+            arguments.add(account);
+        }
         arguments.add(reference);
 
         // SmallRye owns threads, streams, process creation and process-tree destruction.
@@ -65,7 +70,8 @@ public final class CliOnePasswordResolver implements OnePasswordResolver {
             return secret;
         } catch (TimeoutException e) {
             handle.thenAccept(ProcessUtil::destroyAllForcibly);
-            throw new OnePasswordException("1Password lookup timed out; authorize the desktop prompt or increase onepassword.timeout");
+            throw new OnePasswordException(
+                    "1Password lookup timed out; authorize the desktop prompt or increase onepassword.timeout");
         } catch (InterruptedException e) {
             handle.thenAccept(ProcessUtil::destroyAllForcibly);
             Thread.currentThread().interrupt();
@@ -86,6 +92,7 @@ public final class CliOnePasswordResolver implements OnePasswordResolver {
         if (parts.length < 3 || java.util.Arrays.stream(parts).anyMatch(String::isBlank))
             throw new OnePasswordException("Expected a valid op://vault/item/field secret reference", false);
         // OTP values are short-lived and unsuitable for this configuration cache.
-        if (reference.contains("?")) throw new OnePasswordException("Secret reference query parameters are not supported", false);
+        if (reference.contains("?"))
+            throw new OnePasswordException("Secret reference query parameters are not supported", false);
     }
 }

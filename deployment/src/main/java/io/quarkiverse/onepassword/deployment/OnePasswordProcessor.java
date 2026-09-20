@@ -6,8 +6,13 @@ import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.RunTimeConfigBuilderBuildItem;
 
 class OnePasswordProcessor {
-    @BuildStep FeatureBuildItem feature() { return new FeatureBuildItem("onepassword"); }
-    @BuildStep RunTimeConfigBuilderBuildItem runtimeConfig() {
+    @BuildStep
+    FeatureBuildItem feature() {
+        return new FeatureBuildItem("onepassword");
+    }
+
+    @BuildStep
+    RunTimeConfigBuilderBuildItem runtimeConfig() {
         return new RunTimeConfigBuilderBuildItem(OnePasswordRuntimeConfigBuilder.class);
     }
 }

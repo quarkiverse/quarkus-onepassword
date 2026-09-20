@@ -12,7 +12,8 @@ public final class CachingOnePasswordResolver implements OnePasswordResolver {
 
     public CachingOnePasswordResolver(OnePasswordResolver delegate, int capacity) {
         this.delegate = Objects.requireNonNull(delegate);
-        if (capacity < 1) throw new IllegalArgumentException("Cache capacity must be positive");
+        if (capacity < 1)
+            throw new IllegalArgumentException("Cache capacity must be positive");
         this.capacity = capacity;
     }
 
@@ -20,9 +21,11 @@ public final class CachingOnePasswordResolver implements OnePasswordResolver {
     public synchronized String resolve(String reference) {
         CliOnePasswordResolver.validateReference(reference);
         String value = cache.get(reference);
-        if (value != null) return value;
+        if (value != null)
+            return value;
         value = Objects.requireNonNull(delegate.resolve(reference), "Resolver returned null");
-        if (cache.size() == capacity) cache.remove(cache.keySet().iterator().next());
+        if (cache.size() == capacity)
+            cache.remove(cache.keySet().iterator().next());
         cache.put(reference, value);
         return value;
     }

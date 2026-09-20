@@ -1,20 +1,27 @@
 <?xml version="1.0" ?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.quarkiverse</groupId>
+    <artifactId>quarkiverse-parent</artifactId>
+    <version>22</version>
+  </parent>
   <groupId>io.quarkiverse.onepassword</groupId>
   <artifactId>quarkus-onepassword-parent</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Quarkus 1Password</name>
   <properties>
-    <maven.compiler.release>17</maven.compiler.release>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quarkus.version>3.27.0</quarkus.version>
   </properties>
+  <scm>
+    <connection>scm:git:git@github.com:quarkiverse/quarkus-onepassword.git</connection>
+    <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-onepassword.git</developerConnection>
+    <url>https://github.com/quarkiverse/quarkus-onepassword</url>
+  </scm>
   <modules>
     <module>runtime</module>
     <module>deployment</module>
-    <module>integration-tests</module>
   </modules>
   <dependencyManagement>
     <dependencies>
@@ -31,15 +38,7 @@
     <pluginManagement>
       <plugins>
         <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.0</version>
-          <configuration>
-            <parameters>true</parameters>
-          </configuration>
-        </plugin>
-        <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.3</version>
           <configuration>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -48,7 +47,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.5.3</version>
           <configuration>
             <systemPropertyVariables>
               <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -66,7 +64,39 @@
           <version>${quarkus.version}</version>
           <extensions>true</extensions>
         </plugin>
+        <plugin>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-config-doc-maven-plugin</artifactId>
+          <version>${quarkus.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
+  <profiles>
+    <profile>
+      <id>docs</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>!true</value>
+        </property>
+      </activation>
+      <modules>
+        <module>docs</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>it</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>!true</value>
+        </property>
+      </activation>
+      <modules>
+        <module>integration-tests</module>
+      </modules>
+    </profile>
+  </profiles>
+
 </project>

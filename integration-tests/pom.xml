@@ -7,6 +7,7 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>quarkus-onepassword-integration-tests</artifactId>
+  <name>Quarkus 1Password - Integration Tests</name>
   <dependencies>
     <dependency>
       <groupId>io.quarkiverse.onepassword</groupId>
