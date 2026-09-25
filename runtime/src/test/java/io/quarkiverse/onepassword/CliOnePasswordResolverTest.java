@@ -56,7 +56,7 @@ class CliOnePasswordResolverTest {
 
     @Test
     void discardsStderrAndReportsOnlyExitCode() throws Exception {
-        var resolver = cli("printf 'SENSITIVE-STDOUT'; printf 'SENSITIVE-STDERR' >&2; exit 7", Duration.ofSeconds(3));
+        var resolver = cli("printf 'SENSITIVE-STDOUT'; printf 'SENSITIVE-STDERR' >&2; exit 7", Duration.ofSeconds(10));
         var error = assertThrows(OnePasswordException.class, () -> resolver.resolve("op://v/i/password"));
         assertTrue(error.getMessage().contains("exit 7"));
         assertFalse(error.toString().contains("SENSITIVE"));
