@@ -28,26 +28,33 @@ final class OnePasswordFallback {
                 ConfigValue expressionSetting = context
                         .proceed(org.eclipse.microprofile.config.Config.PROPERTY_EXPRESSIONS_ENABLED);
                 boolean enabled = expressionSetting == null || Boolean.parseBoolean(expressionSetting.getValue());
-                OnePasswordResolver resolver = OnePasswordSecretKeysHandlerFactory.createResolver(new ConfigSourceContext() {
-                    @Override
-                    public ConfigValue getValue(String name) {
-                        return context.proceed(name);
-                    }
-
-                    @Override
-                    public Iterator<String> iterateNames() {
-                        return context.iterateNames();
-                    }
-                });
+                // Lazy-init: reading config during interceptor construction can trigger
+                // expression resolution through the partially-built chain in newer SmallRye.
+                OnePasswordResolver[] holder = new OnePasswordResolver[1];
                 return (chain, name) -> {
+                    if (holder[0] == null) {
+                        holder[0] = OnePasswordSecretKeysHandlerFactory.createResolver(new ConfigSourceContext() {
+                            @Override
+                            public ConfigValue getValue(String n) {
+                                return chain.proceed(n);
+                            }
+
+                            @Override
+                            public Iterator<String> iterateNames() {
+                                return chain.iterateNames();
+                            }
+                        });
+                    }
+                    OnePasswordResolver resolver = holder[0];
                     ConfigValue value = chain.proceed(name);
                     if (value == null || value.getValue() == null || !enabled || !Expressions.isEnabled())
                         return value;
                     String raw = value.getValue();
                     // Whole-property references only. Compound expressions retain the strict handler.
+                    if (!raw.startsWith(PREFIX) || !raw.endsWith("}"))
+                        return value;
                     String reference = raw.substring(PREFIX.length(), raw.length() - 1);
-                    if (!raw.startsWith(PREFIX) || !raw.endsWith("}")
-                            || reference.contains("}"))
+                    if (reference.contains("}"))
                         return value;
                     try {
                         String secret = resolver.resolve(reference);
